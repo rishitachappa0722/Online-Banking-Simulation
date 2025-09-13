@@ -1,0 +1,189 @@
+import java.util.*;
+
+class Account {
+    private static int idCounter = 1000; // Auto-generate account numbers
+    private int accountNumber;
+    private String holderName;
+    private double balance;
+
+    public Account(String holderName, double initialDeposit) {
+        this.accountNumber = idCounter++;
+        this.holderName = holderName;
+        this.balance = initialDeposit;
+    }
+
+    public int getAccountNumber() { return accountNumber; }
+    public String getHolderName() { return holderName; }
+    public double getBalance() { return balance; }
+
+    public void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            System.out.println("✅ Deposit successful! New balance: " + balance);
+        } else {
+            System.out.println("❌ Invalid deposit amount!");
+        }
+    }
+
+    public void withdraw(double amount) {
+        if (amount > 0 && amount <= balance) {
+            balance -= amount;
+            System.out.println("✅ Withdrawal successful! New balance: " + balance);
+        } else {
+            System.out.println("❌ Insufficient balance or invalid amount!");
+        }
+    }
+
+    public void transfer(Account target, double amount) {
+        if (amount > 0 && amount <= balance) {
+            this.balance -= amount;
+            target.balance += amount;
+            System.out.println("✅ Transfer successful! Sent " + amount + " to " + target.holderName);
+        } else {
+            System.out.println("❌ Transfer failed: insufficient funds or invalid amount.");
+        }
+    }
+
+    public void displayDetails() {
+        System.out.println("🔹 Account Number: " + accountNumber);
+        System.out.println("🔹 Holder Name   : " + holderName);
+        System.out.println("🔹 Balance       : " + balance);
+    }
+}
+
+public class OnlineBanking {
+    private static Map<Integer, Account> accounts = new HashMap<>();
+    private static Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        int choice = -1;
+        while (choice != 6) {
+            System.out.println("\n===== Online Banking System =====");
+            System.out.println("1. Create Account");
+            System.out.println("2. Deposit Money");
+            System.out.println("3. Withdraw Money");
+            System.out.println("4. Transfer Money");
+            System.out.println("5. Check Account Details");
+            System.out.println("6. Exit");
+            System.out.print("Enter choice: ");
+
+            String line = sc.nextLine().trim();
+            try {
+                choice = Integer.parseInt(line);
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Please enter a valid number.");
+                continue;
+            }
+
+            switch (choice) {
+                case 1 -> createAccount();
+                case 2 -> depositMoney();
+                case 3 -> withdrawMoney();
+                case 4 -> transferMoney();
+                case 5 -> checkDetails();
+                case 6 -> System.out.println("👋 Exiting... Thank you!");
+                default -> System.out.println("❌ Invalid choice! Try again.");
+            }
+        }
+        sc.close();
+    }
+
+    private static void createAccount() {
+        System.out.print("Enter account holder name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter initial deposit: ");
+        double deposit;
+        try {
+            deposit = Double.parseDouble(sc.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("❌ Invalid amount. Account not created.");
+            return;
+        }
+        Account acc = new Account(name, deposit);
+        accounts.put(acc.getAccountNumber(), acc);
+        System.out.println("✅ Account created successfully! Account No: " + acc.getAccountNumber());
+    }
+
+    private static void depositMoney() {
+        Account acc = findAccount();
+        if (acc != null) {
+            System.out.print("Enter deposit amount: ");
+            try {
+                double amt = Double.parseDouble(sc.nextLine());
+                acc.deposit(amt);
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Invalid amount.");
+            }
+        }
+    }
+
+    private static void withdrawMoney() {
+        Account acc = findAccount();
+        if (acc != null) {
+            System.out.print("Enter withdrawal amount: ");
+            try {
+                double amt = Double.parseDouble(sc.nextLine());
+                acc.withdraw(amt);
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Invalid amount.");
+            }
+        }
+    }
+
+    private static void transferMoney() {
+        System.out.print("Enter your account number: ");
+        int fromAccNo;
+        try {
+            fromAccNo = Integer.parseInt(sc.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("❌ Invalid account number.");
+            return;
+        }
+        Account fromAcc = accounts.get(fromAccNo);
+
+        if (fromAcc != null) {
+            System.out.print("Enter target account number: ");
+            int toAccNo;
+            try {
+                toAccNo = Integer.parseInt(sc.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Invalid account number.");
+                return;
+            }
+            Account toAcc = accounts.get(toAccNo);
+
+            if (toAcc != null) {
+                System.out.print("Enter transfer amount: ");
+                try {
+                    double amt = Double.parseDouble(sc.nextLine());
+                    fromAcc.transfer(toAcc, amt);
+                } catch (NumberFormatException e) {
+                    System.out.println("❌ Invalid amount.");
+                }
+            } else {
+                System.out.println("❌ Target account not found!");
+            }
+        } else {
+            System.out.println("❌ Your account not found!");
+        }
+    }
+
+    private static void checkDetails() {
+        Account acc = findAccount();
+        if (acc != null) acc.displayDetails();
+    }
+
+    private static Account findAccount() {
+        System.out.print("Enter account number: ");
+        int accNo;
+        try {
+            accNo = Integer.parseInt(sc.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("❌ Invalid account number.");
+            return null;
+        }
+        Account acc = accounts.get(accNo);
+        if (acc == null) System.out.println("❌ Account not found!");
+        return acc;
+    }
+}
